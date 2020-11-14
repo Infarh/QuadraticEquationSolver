@@ -16,7 +16,7 @@ namespace QuadraticEquationSolver.ViewModels
             get => _Title;
             set
             {
-                if(Set(ref _Title, value))
+                if (Set(ref _Title, value))
                     OnPropertyChanged(nameof(TitleLength));
             }
         }
@@ -24,5 +24,7 @@ namespace QuadraticEquationSolver.ViewModels
         public int TitleLength => Title.Length;
 
         #endregion
+
+        public string UserName { get => Get<string>(); set => Set(value); }
     }
 }
