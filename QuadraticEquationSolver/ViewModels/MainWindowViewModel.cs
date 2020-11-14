@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Input;
+
 using QuadraticEquationSolver.Infrastructure;
+using QuadraticEquationSolver.Infrastructure.Commands;
 using QuadraticEquationSolver.Models;
 using QuadraticEquationSolver.ViewModels.Base;
+using QuadraticEquationSolver.Views.Windows;
 
 namespace QuadraticEquationSolver.ViewModels
 {
@@ -47,7 +52,7 @@ namespace QuadraticEquationSolver.ViewModels
             //}
             set => SetValue(ref _A, value)
                .ThenIf(
-                    (old_value, new_value) => Math.Abs(old_value - new_value) > 0.001, 
+                    (old_value, new_value) => Math.Abs(old_value - new_value) > 0.001,
                     v =>
                     {
                         OnPropertyChanged(nameof(X1));
@@ -98,5 +103,60 @@ namespace QuadraticEquationSolver.ViewModels
                 set_result.UpdateProperty(nameof(Title));
             }
         }
+
+        private ChildWindow _ChildWindow;
+        protected ChildWindowViewModel _ChildWindowViewModel;
+
+        #region Command ShowChildWindowCommand - Показать дочернее окно
+
+        /// <summary>Показать дочернее окно</summary>
+        private ICommand _ShowChildWindowCommand;
+
+        /// <summary>Показать дочернее окно</summary>
+        public ICommand ShowChildWindowCommand => _ShowChildWindowCommand
+            ??= new LambdaCommand(OnShowChildWindowCommandExecuted, CanShowChildWindowCommandExecute);
+
+        /// <summary>Проверка возможности выполнения - Показать дочернее окно</summary>
+        private bool CanShowChildWindowCommandExecute(object p) => _ChildWindowViewModel is null;
+
+        /// <summary>Логика выполнения - Показать дочернее окно</summary>
+        private void OnShowChildWindowCommandExecuted(object p)
+        {
+            var child_window_view_model = new ChildWindowViewModel(this);
+
+            var child_window = new ChildWindow
+            {
+                DataContext = child_window_view_model,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = Application.Current.MainWindow
+            };
+            child_window.Closed += (_, _) =>
+            {
+                _ChildWindowViewModel = null;
+                _ChildWindow = null;
+            };
+
+
+            _ChildWindow = child_window;
+            _ChildWindowViewModel = child_window_view_model;
+
+            child_window.Show();
+        }
+
+        #endregion
+
+        #region StringValue : string - Строковое значение
+
+        /// <summary>Строковое значение</summary>
+        private string _StringValue;
+
+        /// <summary>Строковое значение</summary>
+        public string StringValue
+        {
+            get => _StringValue;
+            set => SetValue(ref _StringValue, value).Then(v => _ChildWindowViewModel?.UpdateBaseModelValue(v));
+        }
+
+        #endregion
     }
 }
